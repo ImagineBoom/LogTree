@@ -1,0 +1,548 @@
+
+====================================================================================================
+LogTree V8.2 - COMPLETE API COVERAGE TEST
+Testing ALL CREATE and ADD APIs with all overloads
+====================================================================================================
+
+
+====================================================================================================
+PART 1: CREATE API - All 6 Overloads
+====================================================================================================
+
+====================================================================================================
+TEST # 1 | CREATE - create(name, raw, width)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("System", 0x100, 9);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[System]: raw=0x100 (d:256/b:1'00000000)
+
+====================================================================================================
+TEST # 2 | CREATE - create(name) - simple root
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+
+====================================================================================================
+TEST # 3 | CREATE - create(name, raw, width, decoded_string)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Status", 0x01, 8, "OK");
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Status]: raw=0x1 (d:1/b:00000001) → decoded=OK
+
+====================================================================================================
+TEST # 4 | CREATE - create(name, raw, rwidth, dec, dwidth) - numeric decode
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Sensor", 0xFF, 8, 255, 8);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Sensor]: raw=0xFF (d:255/b:11111111) → decoded=0xFF (d:255/b:11111111)
+
+====================================================================================================
+TEST # 5 | CREATE - create(name, raw1, name2, raw2) - dual values
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Dual", 0xAB, "Value2", 0xCD);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Dual]: raw=0xAB (d:171/b:10101011) → Value2=0xCD (d:205/b:11001101)
+
+====================================================================================================
+TEST # 6 | CREATE - create(name, value128) - 128-bit value
+====================================================================================================
+
+📝 INPUT:
+unsigned __int128 val128 = 0xFFFFFFFFFFFFFFFFULL;
+val128 = (val128 << 64) | 0xFFFFFFFFFFFFFFFFULL;
+auto tree = LogTree::create("BigNum", val128);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[BigNum]: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (b:11111111'11111111'11111111'11111111'11111111'11111111'11111111'11111111_11111111'11111111'11111111'11111111'11111111'11111111'11111111'11111111)
+
+
+====================================================================================================
+PART 2: ADD API - All 5 Overloads
+====================================================================================================
+
+====================================================================================================
+TEST # 7 | ADD - add(parent, name) - simple node
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Child");
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+└─[Child]
+
+====================================================================================================
+TEST # 8 | ADD - add(parent, name, raw, width)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Data", 0x42, 8);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+└─[Data]: raw=0x42 (d:66/b:01000010)
+
+====================================================================================================
+TEST # 9 | ADD - add(parent, name, raw, width, decoded_string)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Status", 0x01, 8, "Active");
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+└─[Status]: raw=0x1 (d:1/b:00000001) → decoded=Active
+
+====================================================================================================
+TEST #10 | ADD - add(parent, name, raw, rwidth, dec, dwidth) - numeric decode
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Sensor", 0x64, 8, 100, 8);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+└─[Sensor]: raw=0x64 (d:100/b:01100100) → decoded=0x64 (d:100/b:01100100)
+
+====================================================================================================
+TEST #11 | ADD - add(parent, name, raw1, name2, raw2) - dual values
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Pair", 0xAB, "Second", 0xCD);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+└─[Pair]: raw=0xAB (d:171/b:10101011) → Second=0xCD (d:205/b:11001101)
+
+
+====================================================================================================
+PART 3: ARRAY APIs - add_array_element & add_array_element_auto
+====================================================================================================
+
+====================================================================================================
+TEST #12 | ADD_ARRAY_ELEMENT - add_array_element(parent, array_name, index, float, hex, width)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Data");
+tree.add_array_element("Data", "samples", 0, 1.0f, 0x01, 8);
+tree.add_array_element("Data", "samples", 1, 2.0f, 0x02, 8);
+tree.add_array_element("Data", "samples", 2, 3.0f, 0x03, 8);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Data]
+├─samples[0]=1.0 (0x1, b:00000001)
+├─samples[1]=2.0 (0x2, b:00000010)
+└─samples[2]=3.0 (0x3, b:00000011)
+
+====================================================================================================
+TEST #13 | ADD_ARRAY_ELEMENT_AUTO - add_array_element_auto(parent, array_name, float, hex, width)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Metrics");
+tree.add_array_element_auto("Metrics", "cpu", 1.5f, 0x3F00, 16);
+tree.add_array_element_auto("Metrics", "cpu", 2.5f, 0x4000, 16);
+tree.add_array_element_auto("Metrics", "cpu", 3.5f, 0x4060, 16);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Metrics]
+├─cpu[0]=1.5 (0x3F00, b:00111111'00000000)
+├─cpu[1]=2.5 (0x4000, b:01000000'00000000)
+└─cpu[2]=3.5 (0x4060, b:01000000'01100000)
+
+====================================================================================================
+TEST #14 | ADD_ARRAY_ELEMENT_AUTO - Multiple arrays with auto indexing
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("System");
+tree.add_array_element_auto("System", "temp", 25.5f, 0x41CB0000, 32);
+tree.add_array_element_auto("System", "temp", 26.0f, 0x41D00000, 32);
+tree.add_array_element_auto("System", "voltage", 3.3f, 0x40533333, 32);
+tree.add_array_element_auto("System", "voltage", 3.4f, 0x4059999A, 32);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[System]
+├─temp[0]=25.5 (0x41CB0000, b:01000001'11001011'00000000'00000000)
+├─temp[1]=26.0 (0x41D00000, b:01000001'11010000'00000000'00000000)
+├─voltage[0]=3.3 (0x40533333, b:01000000'01010011'00110011'00110011)
+└─voltage[1]=3.4 (0x4059999A, b:01000000'01011001'10011001'10011010)
+
+
+====================================================================================================
+PART 4: DUAL ARRAY API - add_dual_array_elements
+====================================================================================================
+
+====================================================================================================
+TEST #15 | ADD_DUAL_ARRAY_ELEMENTS - add_dual_array_elements(parent, name1, f1, h1, w1, name2, f2, h2, w2)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Network");
+tree.add_dual_array_elements(
+    "Network",
+    "input", 12.5f, 0xABCD, 16,
+    "output", 25.0f, 0x1234, 16
+);
+tree.add_dual_array_elements(
+    "Network",
+    "input", 15.0f, 0xDCBA, 16,
+    "output", 30.0f, 0x4321, 16
+);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Network]
+├─input[0]=12.5 (0xABCD, b:10101011'11001101), output[0]=25.0 (0x1234, b:00010010'00110100)
+└─input[1]=15.0 (0xDCBA, b:11011100'10111010), output[1]=30.0 (0x4321, b:01000011'00100001)
+
+====================================================================================================
+TEST #16 | ADD_DUAL_ARRAY_ELEMENTS - Dual array with different bit widths
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("IO");
+tree.add_dual_array_elements(
+    "IO",
+    "rx", 1.0f, 0xFF, 8,
+    "tx", 2.0f, 0xFFFF, 16
+);
+tree.add_dual_array_elements(
+    "IO",
+    "rx", 3.0f, 0xAA, 8,
+    "tx", 4.0f, 0xAAAA, 16
+);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[IO]
+├─rx[0]=1.0 (0xFF, b:11111111), tx[0]=2.0 (0xFFFF, b:11111111'11111111)
+└─rx[1]=3.0 (0xAA, b:10101010), tx[1]=4.0 (0xAAAA, b:10101010'10101010)
+
+
+====================================================================================================
+PART 5: COMBINED USAGE - Mixed APIs
+====================================================================================================
+
+====================================================================================================
+TEST #17 | COMBINED - Mix of CREATE, ADD, and ARRAY APIs
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root", 0x01, 8);
+tree.add("Root", "Simple");
+tree.add("Root", "WithValue", 0x42, 8);
+tree.add("Root", "Decoded", 0x01, 8, "OK");
+tree.add_array_element_auto("Root", "metrics", 1.5f, 0x3F00, 16);
+tree.add_array_element_auto("Root", "metrics", 2.5f, 0x4000, 16);
+tree.add_dual_array_elements(
+    "Root",
+    "in", 10.0f, 0xAA, 8,
+    "out", 20.0f, 0xBB, 8
+);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]: raw=0x1 (d:1/b:00000001)
+├─[Simple]
+├─[WithValue]: raw=0x42 (d:66/b:01000010)
+├─[Decoded]: raw=0x1 (d:1/b:00000001) → decoded=OK
+├─metrics[0]=1.5 (0x3F00, b:00111111'00000000)
+├─metrics[1]=2.5 (0x4000, b:01000000'00000000)
+└─in[0]=10.0 (0xAA, b:10101010), out[0]=20.0 (0xBB, b:10111011)
+
+====================================================================================================
+TEST #18 | CHAIN ADD - Chaining multiple add() calls
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "A", 0x01, 8)
+    .add("Root", "B", 0x02, 8)
+    .add("Root", "C", 0x03, 8)
+    .add("C", "D", 0x04, 8);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+├─[A]: raw=0x1 (d:1/b:00000001)
+├─[B]: raw=0x2 (d:2/b:00000010)
+└─[C]: raw=0x3 (d:3/b:00000011)
+  └─[D]: raw=0x4 (d:4/b:00000100)
+
+
+====================================================================================================
+PART 6: SUBTREE TESTS - format_from() API
+====================================================================================================
+
+====================================================================================================
+TEST #19 | FORMAT_FROM - Simple subtree from 'Subtree' node
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Subtree");
+tree.add("Subtree", "Node1");
+tree.add("Subtree", "Node2");
+std::string output = tree.format_from("Subtree");
+
+📤 OUTPUT:
+[Subtree]
+├─[Node1]
+└─[Node2]
+
+====================================================================================================
+TEST #20 | FORMAT_FROM - Deep nested subtree (4 levels)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Level1_A")
+    .add("Level1_A", "Level2_A1")
+    .add("Level2_A1", "Level3_A1a")
+    .add("Level3_A1a", "Level4_A1a1");
+tree.add("Level1_A", "Level2_A2")
+    .add("Level2_A2", "Level3_A2a");
+std::string output = tree.format_from("Level1_A");
+
+📤 OUTPUT:
+[Level1_A]
+├─[Level2_A1]
+│ └─[Level3_A1a]
+│   └─[Level4_A1a1]
+└─[Level2_A2]
+  └─[Level3_A2a]
+
+====================================================================================================
+TEST #21 | FORMAT_FROM - Wide tree with many siblings
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Parent");
+tree.add("Parent", "Child1");
+tree.add("Parent", "Child2");
+tree.add("Parent", "Child3");
+tree.add("Parent", "Child4");
+tree.add("Parent", "Child5");
+tree.add("Child3", "Grandchild3a");
+tree.add("Child3", "Grandchild3b");
+std::string output = tree.format_from("Child3");
+
+📤 OUTPUT:
+[Child3]
+├─[Grandchild3a]
+└─[Grandchild3b]
+
+====================================================================================================
+TEST #22 | FORMAT_FROM - Subtree containing arrays and dual arrays
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "Config");
+tree.add_array_element_auto("Config", "settings", 1.0f, 0x01, 8);
+tree.add_array_element_auto("Config", "settings", 2.0f, 0x02, 8);
+tree.add("Config", "Advanced");
+tree.add_dual_array_elements(
+    "Advanced",
+    "input", 10.0f, 0xAA, 8,
+    "output", 20.0f, 0xBB, 8
+);
+std::string output = tree.format_from("Config");
+
+📤 OUTPUT:
+[Config]
+├─settings[0]=1.0 (0x1, b:00000001)
+├─settings[1]=2.0 (0x2, b:00000010)
+└─[Advanced]
+  └─input[0]=10.0 (0xAA, b:10101010), output[0]=20.0 (0xBB, b:10111011)
+
+====================================================================================================
+TEST #23 | FORMAT_FROM - Edge case - empty parent (no children)
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "EmptyParent");
+tree.add("Root", "Other");
+std::string output = tree.format_from("EmptyParent");
+
+📤 OUTPUT:
+[EmptyParent]
+
+
+====================================================================================================
+PART 7: COMPLEX REAL-WORLD SCENARIOS
+====================================================================================================
+
+====================================================================================================
+TEST #24 | COMPLEX - Network monitoring system with interfaces, protocols, statistics
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("NetworkMonitor", 0x01, 8, "Active");
+tree.add("NetworkMonitor", "Interfaces");
+tree.add_dual_array_elements("Interfaces", "eth0_rx", 1250.5f, 0xABCD, 16, "eth0_tx", 980.3f, 0xDCBA, 16);
+tree.add_dual_array_elements("Interfaces", "wlan0_rx", 450.8f, 0x1234, 16, "wlan0_tx", 380.5f, 0x4321, 16);
+tree.add("NetworkMonitor", "Protocols");
+tree.add("Protocols", "TCP", 0x06, 8, "Connected");
+tree.add("Protocols", "UDP", 0x11, 8, "Active");
+tree.add("NetworkMonitor", "Statistics");
+tree.add_array_element_auto("Statistics", "packets_sent", 15000.0f, 0x3A98, 16);
+tree.add_array_element_auto("Statistics", "packets_recv", 14800.0f, 0x39D0, 16);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[NetworkMonitor]: raw=0x1 (d:1/b:00000001) → decoded=Active
+├─[Interfaces]
+│ ├─eth0_rx[0]=1250.5 (0xABCD, b:10101011'11001101), eth0_tx[0]=980.3 (0xDCBA, b:11011100'10111010)
+│ └─wlan0_rx[0]=450.8 (0x1234, b:00010010'00110100), wlan0_tx[0]=380.5 (0x4321, b:01000011'00100001)
+├─[Protocols]
+│ ├─[TCP]: raw=0x6 (d:6/b:00000110) → decoded=Connected
+│ └─[UDP]: raw=0x11 (d:17/b:00010001) → decoded=Active
+└─[Statistics]
+  ├─packets_sent[0]=15000.0 (0x3A98, b:00111010'10011000)
+  └─packets_recv[0]=14800.0 (0x39D0, b:00111001'11010000)
+
+====================================================================================================
+TEST #25 | COMPLEX - CPU architecture with cores, registers, cache hierarchy
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("CPU", 0x00, 8, "Intel");
+tree.add("CPU", "Core0");
+tree.add("Core0", "Registers");
+tree.add("Registers", "EAX", 0xFFFFFFFF, 32);
+tree.add("Registers", "EBX", 0x00000000, 32);
+tree.add("Core0", "Cache");
+tree.add("Cache", "L1_Data", 0x8000, 16, "32KB");
+tree.add("Cache", "L2", 0x40000, 19, "256KB");
+tree.add("Cache", "L3", 0x800000, 24, "8MB");
+tree.add("Core0", "Pipeline");
+tree.add_array_element_auto("Pipeline", "stage_latency", 0.5f, 0x3F00, 16);
+tree.add_array_element_auto("Pipeline", "stage_latency", 0.8f, 0x3F4C, 16);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[CPU]: raw=0x0 (d:0/b:00000000) → decoded=Intel
+└─[Core0]
+  ├─[Registers]
+  │ ├─[EAX]: raw=0xFFFFFFFF (d:4294967295/b:11111111'11111111'11111111'11111111)
+  │ └─[EBX]: raw=0x0 (d:0/b:00000000'00000000'00000000'00000000)
+  ├─[Cache]
+  │ ├─[L1_Data]: raw=0x8000 (d:32768/b:10000000'00000000) → decoded=32KB
+  │ ├─[L2]: raw=0x40000 (d:262144/b:100'00000000'00000000) → decoded=256KB
+  │ └─[L3]: raw=0x800000 (d:8388608/b:10000000'00000000'00000000) → decoded=8MB
+  └─[Pipeline]
+    ├─stage_latency[0]=0.5 (0x3F00, b:00111111'00000000)
+    └─stage_latency[1]=0.8 (0x3F4C, b:00111111'01001100)
+
+====================================================================================================
+TEST #26 | COMPLEX - File system tree with directories and files
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("/");
+tree.add("/", "home");
+tree.add("home", "user");
+tree.add("user", "Documents");
+tree.add("Documents", "report.pdf", 0x01, 8, "File");
+tree.add("Documents", "data.csv", 0x02, 8, "File");
+tree.add("/", "etc");
+tree.add("etc", "config.ini", 0x05, 8, "Config");
+tree.add("/", "var");
+tree.add("var", "log");
+tree.add("log", "syslog", 0x07, 8, "Log");
+tree.add_array_element_auto("log", "entries", 100.0f, 0x64, 8);
+std::string output = tree.format();
+
+📤 OUTPUT:
+[/]
+├─[home]
+│ └─[user]
+│   └─[Documents]
+│     ├─[report.pdf]: raw=0x1 (d:1/b:00000001) → decoded=File
+│     └─[data.csv]: raw=0x2 (d:2/b:00000010) → decoded=File
+├─[etc]
+│ └─[config.ini]: raw=0x5 (d:5/b:00000101) → decoded=Config
+└─[var]
+  └─[log]
+    ├─[syslog]: raw=0x7 (d:7/b:00000111) → decoded=Log
+    └─entries[0]=100.0 (0x64, b:01100100)
+
+====================================================================================================
+TEST #27 | COMPLEX - Edge cases - empty parent, single child, deep chain
+====================================================================================================
+
+📝 INPUT:
+auto tree = LogTree::create("Root");
+tree.add("Root", "EmptyParent");
+tree.add("Root", "SingleChild", 0x42, 8);
+tree.add("Root", "A");
+tree.add("A", "B");
+tree.add("B", "C");
+tree.add("C", "D");
+tree.add("D", "E");
+std::string output = tree.format();
+
+📤 OUTPUT:
+[Root]
+├─[EmptyParent]
+├─[SingleChild]: raw=0x42 (d:66/b:01000010)
+└─[A]
+  └─[B]
+    └─[C]
+      └─[D]
+        └─[E]
+====================================================================================================
+✅ TOTAL API TESTS: 27
+====================================================================================================
+
+API Coverage Summary:
+  ✓ CREATE API:              6 overloads tested
+  ✓ ADD API:                 5 overloads tested
+  ✓ ADD_ARRAY_ELEMENT:       Manual index tested
+  ✓ ADD_ARRAY_ELEMENT_AUTO:  Auto index + multiple arrays tested
+  ✓ ADD_DUAL_ARRAY_ELEMENTS: Basic + different widths tested
+  ✓ FORMAT_FROM:             Simple + deep + wide + arrays + edge cases
+  ✓ COMPLEX SCENARIOS:       Network + CPU + FileSystem + EdgeCases
+
+All APIs covered with complete input/output display!
+
